@@ -9,6 +9,8 @@ from urllib import urlencode
 from urllib2 import (Request, urlopen, HTTPCookieProcessor, build_opener,
                      install_opener)
 
+from .config import conf_map
+
 
 class WebAdmin:
     host = None
@@ -47,14 +49,38 @@ class WebAdmin:
         if csrf:
             return csrf[0].value
 
-    def add_user(self, user, passwd=12345):
+    @staticmethod
+    def generate_config(znc_conf, user=''):
+        webadmin_conf = []
+
+        for znc, wa in znc_conf.iteritems():
+            if znc == 'Servers':
+                webadmin_conf.append((conf_map.get(znc),
+                                     "\n". join(server for server in wa)))
+                continue
+            elif znc == 'LoadModule':
+                webadmin_conf.extend((conf_map.get(znc), mod) for mod in wa)
+                continue
+
+            key = conf_map.get(znc)
+            val = {True: 1,
+                   False: None}.get(wa, str(wa).replace('<%user%>', user))
+            if key and val:
+                webadmin_conf.append((key, val))
+
+        return webadmin_conf
+
+    def add_user(self, user, passwd=12345, conf=None):
         path = "mods/webadmin/adduser"
 
-        data = {"_CSRF_Check": self.get_csrf(path),
-                "submitted": 1,
-                "newuser": user,
-                "password": passwd,
-                "password2": passwd}
+        data = [("_CSRF_Check", self.get_csrf(path)),
+                ("submitted", 1),
+                ("newuser", user),
+                ("password", passwd),
+                ("password2", passwd)]
+        if conf:
+            data.extend(WebAdmin.generate_config(conf, user=user))
 
         req = Request("%s/%s" % (self._get_site(), path), urlencode(data))
         urlopen(req)
+        print "%s created." % user
