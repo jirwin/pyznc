@@ -37,8 +37,8 @@ class WebAdmin:
         data = {'submitted': '1',
                 'user': self.user,
                 'pass': self.passwd}
-        conn = Request("%s/login" % self._get_site(), urlencode(data))
-        urlopen(conn)
+        req = Request("%s/login" % self._get_site(), urlencode(data))
+        urlopen(req)
 
     def get_csrf(self, path):
         page = urlopen(Request("%s/%s" % (self._get_site(), path)))
@@ -46,3 +46,15 @@ class WebAdmin:
         csrf = doc.cssselect("input[name=_CSRF_Check]")
         if csrf:
             return csrf[0].value
+
+    def add_user(self, user, passwd=12345):
+        path = "mods/webadmin/adduser"
+
+        data = {"_CSRF_Check": self.get_csrf(path),
+                "submitted": 1,
+                "newuser": user,
+                "password": passwd,
+                "password2": passwd}
+
+        req = Request("%s/%s" % (self._get_site(), path), urlencode(data))
+        urlopen(req)
