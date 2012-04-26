@@ -71,7 +71,7 @@ class WebAdmin:
         return webadmin_conf
 
     def add_user(self, user, passwd=12345, conf=None):
-        path = "mods/webadmin/adduser"
+        path = "mods/global/webadmin/adduser"
 
         data = [("_CSRF_Check", self.get_csrf(path)),
                 ("submitted", 1),
