@@ -38,9 +38,7 @@ class WebAdmin:
                 'user': self.user,
                 'pass': self.passwd}
         conn = Request("%s/login" % self._get_site(), urlencode(data))
-        print conn.get_full_url()
-        for line in urlopen(conn):
-            print line
+        urlopen(conn)
 
     def get_csrf(self, path):
         page = urlopen(Request("%s/%s" % (self._get_site(), path)))
